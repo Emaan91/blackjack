@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blackjack Game</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: green;
+        color: white;
+      }
+      .game-container {
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+        background: darkgreen;
+        border-radius: 10px;
+      }
+      .buttons button {
+        padding: 10px 20px;
+        margin: 10px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Blackjack</h1>
+    <div class="game-container">
+      <h2>Dealer's Hand: <span id="dealer-score">0</span></h2>
+      <p id="dealer-cards"></p>
+      <h2>Your Hand: <span id="player-score">0</span></h2>
+      <p id="player-cards"></p>
+      <div class="buttons">
+        <button onclick="hit()">Hit</button>
+        <button onclick="stand()">Stand</button>
+        <button onclick="resetGame()">Reset</button>
+      </div>
+      <h3 id="message"></h3>
+    </div>
+
+    <script>
+      let deck, playerHand, dealerHand;
+
+      function createDeck() {
+        let suits = ["Hearts", "Diamonds", "Clubs", "Spades"];
+        let values = [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "J",
+          "Q",
+          "K",
+          "A",
+        ];
+        let deck = [];
+        for (let suit of suits) {
+          for (let value of values) {
+            deck.push({ value, suit });
+          }
+        }
+        return deck.sort(() => Math.random() - 0.5);
+      }
+
+      function getCardValue(card) {
+        if (["J", "Q", "K"].includes(card.value)) return 10;
+        if (card.value === "A") return 11;
+        return parseInt(card.value);
+      }
+
+      function calculateHandValue(hand) {
+        let sum = 0;
+        let aces = 0;
+        for (let card of hand) {
+          sum += getCardValue(card);
+          if (card.value === "A") aces++;
+        }
+        while (sum > 21 && aces) {
+          sum -= 10;
+          aces--;
+        }
+        return sum;
+      }
+
+      function updateDisplay() {
+        document.getElementById("player-cards").textContent = playerHand
+          .map((c) => `${c.value} of ${c.suit}`)
+          .join(", ");
+        document.getElementById("player-score").textContent =
+          calculateHandValue(playerHand);
+        document.getElementById("dealer-cards").textContent = dealerHand
+          .map((c) => `${c.value} of ${c.suit}`)
+          .join(", ");
+        document.getElementById("dealer-score").textContent =
+          calculateHandValue(dealerHand);
+      }
+
+      function hit() {
+        playerHand.push(deck.pop());
+        updateDisplay();
+        if (calculateHandValue(playerHand) > 21) {
+          document.getElementById("message").textContent =
+            "You Bust! Dealer Wins!";
+        }
+      }
+
+      function stand() {
+        while (calculateHandValue(dealerHand) < 17) {
+          dealerHand.push(deck.pop());
+        }
+        updateDisplay();
+        let playerScore = calculateHandValue(playerHand);
+        let dealerScore = calculateHandValue(dealerHand);
+
+        if (dealerScore > 21 || playerScore > dealerScore) {
+          document.getElementById("message").textContent = "You Win!";
+        } else if (playerScore < dealerScore) {
+          document.getElementById("message").textContent = "Dealer Wins!";
+        } else {
+          document.getElementById("message").textContent = "It's a Draw!";
+        }
+      }
+
+      function resetGame() {
+        deck = createDeck();
+        playerHand = [deck.pop(), deck.pop()];
+        dealerHand = [deck.pop(), deck.pop()];
+        document.getElementById("message").textContent = "";
+        updateDisplay();
+      }
+
+      resetGame();
+    </script>
+  </body>
+</html>
